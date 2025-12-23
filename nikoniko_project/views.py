@@ -22,7 +22,6 @@ class Proposal:
         self.cost_pt_2 = int(c2) if c2 else 0
         self.cost_pt_3 = int(c3) if c3 else 0
         self.votes = defaultdict(int) # グループごとの投票ポイント
-        self.target_cost = 1000 # 目標コスト（仮）
         self.creator_id = creator_id # 作成者のID
         self.category = category # 事業カテゴリ
     
@@ -37,6 +36,10 @@ class Proposal:
     @property
     def total_points(self):
         return sum(self.votes.values())
+
+    @property
+    def target_cost(self):
+        return self.cost_pt_1 + self.cost_pt_2 + self.cost_pt_3
 
     @property
     def author_group(self):
@@ -59,6 +62,9 @@ reports_db = [
     Report(1, "bug", 1200, "ログイン画面の表示が崩れることがあります。"),
     Report(2, "idea", 1350, "わざとロード時間を長くして、期待感を煽るUIはどうでしょう？")
 ]
+
+# 投票済みユーザーIDを管理（サーバー再起動でリセット）
+voted_user_ids = set()
 
 # --- ヘルパー関数 ---
 def get_group_from_id(voter_id):
@@ -147,7 +153,8 @@ def index():
     if 'voter_id' not in session:
         return redirect(url_for('un_design.gate'))
     
-    has_voted = session.get('has_voted', False)
+    current_user_id = session.get('voter_id')
+    has_voted = session.get('has_voted', False) or (current_user_id in voted_user_ids)
     
     # 自分のグループが作成した企画のみフィルタリング
     user_group = session.get('group')
@@ -164,6 +171,10 @@ def vote_all():
     user_group = session.get('group')
     current_user_id = session.get('voter_id')
     
+    # 重複投票防止
+    if current_user_id in voted_user_ids:
+        return redirect(url_for('un_design.result'))
+
     for p in proposals_db:
         # 自分の企画には投票できない
         if str(p.creator_id) == str(current_user_id):
@@ -173,6 +184,7 @@ def vote_all():
         if points and user_group:
             p.votes[user_group] += int(points)
     
+    voted_user_ids.add(current_user_id)
     session['has_voted'] = True
     return redirect(url_for('un_design.result'))
 
@@ -188,7 +200,7 @@ def result():
     group_proposals = [p for p in proposals_db if p.author_group == user_group]
 
     # 達成済み企画があるかどうか
-    has_achieved = any(p.total_points >= 1000 for p in group_proposals)
+    has_achieved = any(p.total_points >= p.target_cost for p in group_proposals)
 
     return render_template('un_design/result.html', proposals=group_proposals, has_achieved=has_achieved)
 
@@ -226,7 +238,7 @@ def admin_feedback():
             votes_by_group[group] += points
 
     # 目標達成状況
-    achieved_count = sum(1 for p in proposals_db if p.total_points >= 1000)
+    achieved_count = sum(1 for p in proposals_db if p.total_points >= p.target_cost)
     not_achieved_count = len(proposals_db) - achieved_count
     achievement_status = {'achieved': achieved_count, 'not_achieved': not_achieved_count}
 
