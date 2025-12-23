@@ -1,5 +1,7 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session
+from flask import Blueprint, render_template, request, redirect, url_for, session, make_response
 from collections import defaultdict
+import csv
+import io
 
 # Blueprintの定義
 bp = Blueprint('un_design', __name__, url_prefix='/un_design')
@@ -296,5 +298,32 @@ def archive_report(id):
 
 @bp.route('/export_csv/<target>')
 def export_csv(target):
-    """CSVエクスポート（ダミー）"""
-    return redirect(url_for('un_design.admin_feedback'))
+    """CSVエクスポート"""
+    if not session.get('is_admin'):
+        return redirect(url_for('un_design.gate'))
+
+    si = io.StringIO()
+    writer = csv.writer(si)
+
+    if target == 'proposals':
+        filename = 'proposals.csv'
+        writer.writerow(['ID', 'Title', 'Author', 'Target', 'Category', 'Problem', 'Details', 'Effect', 'Cost_Dev', 'Cost_Ops', 'Cost_Health', 'Total_Points', 'Creator_ID'])
+        for p in proposals_db:
+            writer.writerow([
+                p.id, p.title, p.author, p.target, p.category, 
+                p.problem, p.details, p.effect, 
+                p.cost_pt_1, p.cost_pt_2, p.cost_pt_3, 
+                p.total_points, p.creator_id
+            ])
+    elif target == 'reports':
+        filename = 'reports.csv'
+        writer.writerow(['ID', 'Type', 'Env', 'Details', 'Status'])
+        for r in reports_db:
+            writer.writerow([r.id, r.report_type, r.env_value, r.details, r.status])
+    else:
+        return redirect(url_for('un_design.admin_feedback'))
+
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = f"attachment; filename={filename}"
+    output.headers["Content-type"] = "text/csv"
+    return output
