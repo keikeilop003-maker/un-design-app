@@ -315,6 +315,7 @@ def edit_proposal(id):
 @bp.route('/delete_proposal/<int:id>')
 def delete_proposal(id):
     """企画削除（管理者または作成者本人）"""
+    global proposals_db
     target_p = next((p for p in proposals_db if p.id == id), None)
     if not target_p:
         return redirect(url_for('un_design.index'))
@@ -326,7 +327,6 @@ def delete_proposal(id):
     if not is_admin and str(target_p.creator_id) != str(current_user_id):
         return redirect(url_for('un_design.gate'))
     
-    global proposals_db
     proposals_db = [p for p in proposals_db if p.id != id]
     
     if is_admin:
