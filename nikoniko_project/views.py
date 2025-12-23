@@ -239,6 +239,9 @@ def result():
     # 自分のグループが作成した企画のみフィルタリング
     group_proposals = [p for p in proposals_db if p.author_group == user_group]
 
+    # 達成率の降順でソート (ゼロ除算回避のため条件分岐)
+    group_proposals.sort(key=lambda p: (p.total_points / p.target_cost) if p.target_cost > 0 else 0, reverse=True)
+
     # 達成済み企画があるかどうか
     has_achieved = any(p.total_points >= p.target_cost for p in group_proposals)
 
