@@ -182,7 +182,9 @@ def vote_all():
             
         points = request.form.get(f'points_{p.id}')
         if points and user_group:
-            p.votes[user_group] += int(points)
+            pt = int(points)
+            if pt > 0:
+                p.votes[user_group] += pt
     
     voted_user_ids.add(current_user_id)
     session['has_voted'] = True
