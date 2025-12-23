@@ -27,7 +27,7 @@ class Proposal:
         self.cost_pt_1 = max(0, safe_int(c1))
         self.cost_pt_2 = max(0, safe_int(c2))
         self.cost_pt_3 = max(0, safe_int(c3))
-        self.votes = defaultdict(int) # グループごとの投票ポイント
+        self.votes = {} # user_id: points
         self.creator_id = creator_id # 作成者のID
         self.category = category # 事業カテゴリ
     
@@ -41,7 +41,8 @@ class Proposal:
 
     @property
     def total_points(self):
-        return sum(self.votes.values())
+        # 登録者以外のユーザーによるポイントの合計
+        return sum(pt for uid, pt in self.votes.items() if str(uid) != str(self.creator_id))
 
     @property
     def target_cost(self):
@@ -207,7 +208,7 @@ def vote_all():
     # 合計が1000を超えていないか確認（不正リクエスト対策）
     if total_vote_points <= 1000:
         for p, pt in vote_updates:
-            p.votes[user_group] += pt
+            p.votes[current_user_id] = pt
     
     voted_user_ids.add(current_user_id)
     session['has_voted'] = True
@@ -259,8 +260,10 @@ def admin_feedback():
     # グループごとの投票数
     votes_by_group = defaultdict(int)
     for p in proposals_db:
-        for group, points in p.votes.items():
-            votes_by_group[group] += points
+        for uid, points in p.votes.items():
+            grp = get_group_from_id(str(uid))
+            if grp:
+                votes_by_group[grp] += points
 
     # 目標達成状況
     achieved_count = sum(1 for p in proposals_db if p.total_points >= p.target_cost)
