@@ -132,8 +132,16 @@ def add():
         return redirect(url_for('un_design.gate'))
 
     if request.method == 'POST':
-        new_id = len(proposals_db) + 1
         title = request.form.get('title')
+        creator_id = session.get('voter_id')
+
+        # 二重送信防止：同じユーザーが同じタイトルの企画を持っていたらスキップ
+        if any(p.title == title and str(p.creator_id) == str(creator_id) for p in proposals_db):
+            return redirect(url_for('un_design.index'))
+
+        # ID生成：削除機能に対応するため、現在の最大ID+1を使用
+        new_id = (max(p.id for p in proposals_db) if proposals_db else 0) + 1
+
         # フォームからauthorを取得
         author = request.form.get('author')
         target = request.form.get('target')
@@ -144,7 +152,6 @@ def add():
         c1 = request.form.get('cost_pt_1')
         c2 = request.form.get('cost_pt_2')
         c3 = request.form.get('cost_pt_3')
-        creator_id = session.get('voter_id')
 
         new_proposal = Proposal(new_id, title, author, target, problem, details, effect, c1, c2, c3, creator_id, category)
         proposals_db.append(new_proposal)
@@ -307,13 +314,25 @@ def edit_proposal(id):
 
 @bp.route('/delete_proposal/<int:id>')
 def delete_proposal(id):
-    """企画削除（管理者のみ）"""
-    if not session.get('is_admin'):
+    """企画削除（管理者または作成者本人）"""
+    target_p = next((p for p in proposals_db if p.id == id), None)
+    if not target_p:
+        return redirect(url_for('un_design.index'))
+
+    is_admin = session.get('is_admin')
+    current_user_id = session.get('voter_id')
+
+    # 権限チェック: 管理者 または 作成者本人
+    if not is_admin and str(target_p.creator_id) != str(current_user_id):
         return redirect(url_for('un_design.gate'))
     
     global proposals_db
     proposals_db = [p for p in proposals_db if p.id != id]
-    return redirect(url_for('un_design.admin_feedback'))
+    
+    if is_admin:
+        return redirect(url_for('un_design.admin_feedback'))
+    else:
+        return redirect(url_for('un_design.index'))
 
 @bp.route('/archive_report/<int:id>')
 def archive_report(id):
