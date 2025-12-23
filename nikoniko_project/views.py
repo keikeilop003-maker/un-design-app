@@ -70,8 +70,12 @@ reports_db = [
     Report(2, "idea", 1350, "わざとロード時間を長くして、期待感を煽るUIはどうでしょう？")
 ]
 
-# 投票済みユーザーIDを管理（サーバー再起動でリセット）
-voted_user_ids = set()
+# 投票済み判定ヘルパー
+def has_user_voted(user_id):
+    for p in proposals_db:
+        if str(user_id) in p.votes:
+            return True
+    return False
 
 # --- ヘルパー関数 ---
 def get_group_from_id(voter_id):
@@ -90,6 +94,7 @@ def gate():
     """ログインゲート（ポータル）"""
     error = None
     if request.method == 'POST':
+        session.clear() # ログイン試行時にセッションを初期化（古い投票フラグなどを消去）
         password = request.form.get('password')
         voter_id = request.form.get('voter_id')
 
@@ -168,7 +173,7 @@ def index():
         return redirect(url_for('un_design.gate'))
     
     current_user_id = session.get('voter_id')
-    has_voted = session.get('has_voted', False) or (current_user_id in voted_user_ids)
+    has_voted = session.get('has_voted', False) or has_user_voted(current_user_id)
     
     # 自分のグループが作成した企画のみフィルタリング
     user_group = session.get('group')
@@ -186,7 +191,7 @@ def vote_all():
     current_user_id = session.get('voter_id')
     
     # 重複投票防止
-    if current_user_id in voted_user_ids:
+    if has_user_voted(current_user_id):
         return redirect(url_for('un_design.result'))
 
     # 投票内容の一時保存と合計チェック
@@ -205,13 +210,12 @@ def vote_all():
                 vote_updates.append((p, pt))
                 total_vote_points += pt
     
-    # 合計が1000を超えていないか確認（不正リクエスト対策）
-    if total_vote_points <= 1000:
+    # 合計がちょうど1000ポイントであることを確認（持ち点は使い切り）
+    if total_vote_points == 1000:
         for p, pt in vote_updates:
             p.votes[current_user_id] = pt
-    
-    voted_user_ids.add(current_user_id)
-    session['has_voted'] = True
+        session['has_voted'] = True
+
     return redirect(url_for('un_design.result'))
 
 @bp.route('/result')

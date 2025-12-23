@@ -211,19 +211,21 @@
                         {% endfor %}
                     </div>
 
-                    {% if not has_voted %}
-                        {% if proposal.creator_id|string == session['voter_id']|string %}
-                        <div class="point-input-area" style="background: transparent; border: none; width: auto; flex-direction: row; gap: 10px;">
-                            <a href="{{ url_for('un_design.edit_proposal', id=proposal.id) }}" style="color: var(--accent); text-decoration: none; border: 1px solid var(--accent); padding: 10px 20px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; display: inline-block; transition: 0.3s;">EDIT</a>
-                            <a href="{{ url_for('un_design.delete_proposal', id=proposal.id) }}" onclick="return confirm('本当に削除しますか？');" style="color: #ff4d4d; text-decoration: none; border: 1px solid #ff4d4d; padding: 10px 20px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; display: inline-block; transition: 0.3s;">DELETE</a>
-                        </div>
-                        {% else %}
-                        <div class="point-input-area">
-                            <label style="font-size: 0.6rem; font-weight: 600; white-space: nowrap;">VOTE (0-1000)</label>
-                            <input type="number" name="points_{{ proposal.id }}" 
-                                   class="point-input pt-field" value="0" min="0" max="1000" onchange="if(this.value<0)this.value=0;">
-                        </div>
-                        {% endif %}
+                    <!-- 自分の企画なら常に編集・削除可能 -->
+                    {% if proposal.creator_id|string == session['voter_id']|string %}
+                    <div class="point-input-area" style="background: transparent; border: none; width: auto; flex-direction: row; gap: 10px;">
+                        <a href="{{ url_for('un_design.edit_proposal', id=proposal.id) }}" style="color: var(--accent); text-decoration: none; border: 1px solid var(--accent); padding: 10px 20px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; display: inline-block; transition: 0.3s;">EDIT</a>
+                        <a href="{{ url_for('un_design.delete_proposal', id=proposal.id) }}" onclick="return confirm('本当に削除しますか？');" style="color: #ff4d4d; text-decoration: none; border: 1px solid #ff4d4d; padding: 10px 20px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; display: inline-block; transition: 0.3s;">DELETE</a>
+                    </div>
+                    {% endif %}
+
+                    <!-- 投票未完了 かつ 自分の企画でない場合のみ投票入力欄を表示 -->
+                    {% if not has_voted and proposal.creator_id|string != session['voter_id']|string %}
+                    <div class="point-input-area">
+                        <label style="font-size: 0.6rem; font-weight: 600; white-space: nowrap;">VOTE (0-1000)</label>
+                        <input type="number" name="points_{{ proposal.id }}" 
+                               class="point-input pt-field" value="0" min="0" max="1000" onchange="if(this.value<0)this.value=0;">
+                    </div>
                     {% endif %}
                 </div>
             </div>
