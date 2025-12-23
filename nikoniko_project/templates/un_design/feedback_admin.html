@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <title>UN-DESIGN | Admin Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --glass: rgba(255, 255, 255, 0.05); 
+            --accent: #e6c25e; 
+            --accent-dim: rgba(230, 194, 94, 0.3);
+            --bg: #050505; 
+        }
+        body { font-family: 'Montserrat', 'Noto Serif JP'; background: var(--bg); color: #fff; padding: 40px; min-height: 100vh; ipacity 0.5s ease; }
+    .bg-fixed { position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        }
+        header { 
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--accent-dim); padding-bottom: 20px; margin-bottom: 40px;
+        }
+
+        header h1 { color: var(--accent); letter-spacing: 0.3em; font-size: 2.5rem; margin-bottom: 5px; }
+        .export-zone { display: flex; gap: 15px; }
+        .btn-export { 
+            background: none; border: 1px solid var(--accent); color: var(--accent); 
+            padding: 10px 18px; font-size: 0.85rem; border-radius: 4px; text-decoration: none;
+            letter-spacing: 0.15em; transition: 0.3s;
+        }
+        .btn-export:hover { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent-dim); }
+
+        .section-title { color: var(--accent); letter-spacing: 0.3em; margin: 60px 0 30px; border-bottom: 1px solid rgba(212,175,55,0.1); padding-bottom: 10px; font-size: 1.8rem; }
+        .admin-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .card { 
+            background: rgba(255, 255, 255, 0.03); padding: 25px; border-radius: 15px; 
+            border: 1px solid rgba(255,255,255,0.08); border-top: 1px solid rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            transition: 0.3s; 
+        }
+        .card:hover { border-color: var(--accent-dim); }
+        
+        .btn-zone { margin-top: 15px; display: flex; gap: 15px; }
+        .btn { text-decoration: none; font-size: 0.9rem; padding: 8px 15px; border-radius: 4px; letter-spacing: 0.1em; transition: 0.3s; }
+        .btn-edit { border: 1px solid #00d2ff; color: #00d2ff; }
+        .btn-edit:hover { background: #00d2ff; color: #000; }
+        .btn-delete { border: 1px solid #ff4d4d; color: #ff4d4d; }
+        .btn-delete:hover { background: #ff4d4d; color: #fff; }
+        .btn-archive { border: 1px solid var(--accent); color: var(--accent); }
+
+        .page-loader {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000; z-index: 9999;
+            animation: fadeOutLoader 1.2s ease-out 0.5s forwards;
+        }
+        @keyframes fadeOutLoader {
+            to { opacity: 0; pointer-events: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-loader"></div>
+    <div class="bg-fixed"></div>
+    <header>
+        <div>
+            <h1>ADMIN CONSOLE</h1>
+            <p style="font-size: 0.8rem; opacity: 0.7; letter-spacing: 0.1em;">UN-CONVENIENCE DESIGN ARCHIVE</p>
+        </div>
+        <div class="export-zone">
+            <a href="{{ url_for('un_design.export_csv', target='feedback') }}" class="btn-export">EXPORT FEEDBACK (CSV)</a>
+            <a href="{{ url_for('un_design.export_csv', target='proposals') }}" class="btn-export">EXPORT PROPOSALS (CSV)</a>
+        </div>
+    </header>
+
+    <main>
+        <h2 class="section-title">FEEDBACK ARCHIVE</h2>
+        <div class="admin-grid">
+            {% for report in reports %}
+            <div class="card" style="{% if report.status == 'archived' %}opacity: 0.3;{% endif %}">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+                    <span style="color: var(--accent);">ENTRY #{{ report.id }} | {{ report.report_type.upper() }}</span>
+                    <span>ENV: {{ report.env_value }}</span>
+                </div>
+                <p style="margin: 15px 0; font-size: 1.1rem;">{{ report.details }}</p>
+                <div class="btn-zone">
+                    {% if report.status == 'unread' %}
+                    <a href="{{ url_for('un_design.archive_report', id=report.id) }}" class="btn btn-archive">ARCHIVE</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h2 class="section-title">STATISTICS</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 40px; color: #fff;">
+            <div class="card">
+                <h3>グループごとの投稿数</h3>
+                <ul>
+                    {% for group, count in posts_by_group.items() %}
+                    <li>{{ group }}: {{ count }}件</li>
+                    {% endfor %}
+                </ul>
+                <canvas id="groupChart"></canvas>
+            </div>
+            <div class="card">
+                <h3>カテゴリごとの投稿数</h3>
+                <ul>
+                    {% for category, count in posts_by_category.items() %}
+                    <li>{{ category }}: {{ count }}件</li>
+                    {% endfor %}
+                </ul>
+                <canvas id="categoryChart"></canvas>
+            </div>
+            <div class="card">
+                <h3>目標達成状況</h3>
+                <p>達成: {{ achievement_status.achieved }}件</p>
+                <p>未達成: {{ achievement_status.not_achieved }}件</p>
+                <canvas id="achievementChart"></canvas>
+            </div>
+        </div>
+
+        <h2 class="section-title">PROJECT PROPOSALS</h2>
+        {% for group, group_proposals in proposals|groupby('author_group') %}
+            <h3 style="color: #fff; margin-top: 40px; margin-bottom: 20px; border-left: 3px solid #fff; padding-left: 15px;">GROUP: {{ group }}</h3>
+            <div class="admin-grid">
+                {% for p in group_proposals %}
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <span style="font-size: 1.2rem; font-weight: bold; color: var(--accent);">{{ p.title }}</span>
+                            <div style="font-size: 0.8rem; opacity: 0.7;">Author: {{ p.author }} | Score: {{ p.total_points }}</div>
+                        </div>
+                    </div>
+                    <p style="font-size: 1rem; margin: 15px 0; opacity: 0.9; line-height: 1.6;">{{ p.problem[:120] }}...</p>
+                    <div class="btn-zone">
+                        <a href="{{ url_for('un_design.edit_proposal', id=p.id) }}" class="btn btn-edit">EDIT</a>
+                        <a href="{{ url_for('un_design.delete_proposal', id=p.id) }}" class="btn btn-delete" onclick="return confirm('記録を抹消します。よろしいですか？')">DELETE</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </main>
+
+    <footer style="margin-top: 100px; text-align: center; opacity: 0.5; font-size: 0.8rem;">
+        <div style="margin-bottom: 10px;">
+            <a href="{{ url_for('un_design.gate') }}" style="color: #fff; text-decoration: none; margin: 0 10px;">TOP</a>
+            <a href="{{ url_for('un_design.logout') }}" style="color: #ff4d4d; text-decoration: none; margin: 0 10px;">DISCONNECT</a>
+        </div>
+        &copy; 2025 UN-DESIGN TEAM
+    </footer>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+          =
+                    const href = link.getAttribute('href');    document.body.style.opacity = '0';
+                        setTimeout(() => window.location.href = href, 800);
+                    }
+                });
+            });
+
+            // --- グラフ描画 ---
+            const chartOptions = {
+                plugins: { legend: { labels: { color: 'white' } } },
+                scales: { 
+                    y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                    x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                }
+            };
+
+            // グループごと
+            const groupCtx = document.getElementById('groupChart').getContext('2d');
+            new Chart(groupCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ posts_by_group.keys()|list|tojson }},
+                    datasets: [{
+                        label: '投稿数',
+                        data: {{ posts_by_group.values()|list }},
+                        backgroundColor: 'rgba(230, 194, 94, 0.6)',
+                        borderColor: 'rgba(230, 194, 94, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: chartOptions
+            });
+
+            // カテゴリごと
+            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            new Chart(categoryCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ posts_by_category.keys()|list|tojson }},
+                    datasets: [{
+                        label: '投稿数',
+                        data: {{ posts_by_category.values()|list }},
+                        backgroundColor: 'rgba(0, 210, 255, 0.6)',
+                        borderColor: 'rgba(0, 210, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: chartOptions
+            });
+
+            // 目標達成状況
+            const achievementCtx = document.getElementById('achievementChart').getContext('2d');
+            new Chart(achievementCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['達成', '未達成'],
+                    datasets: [{
+                        data: [{{ achievement_status.achieved }}, {{ achievement_status.not_achieved }}],
+                        backgroundColor: ['rgba(46, 204, 113, 0.7)', 'rgba(231, 76, 60, 0.7)']
+                    }]
+                },
+                options: { plugins: { legend: { labels: { color: 'white' } } } }
+            });
+        });
+    </script>
+</body>
+</html>

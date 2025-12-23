@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>MENU | UN-DESIGN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #e6c25e; --glass: rgba(255, 255, 255, 0.05); }
+        body { background: #0a0a0a; color: #fff; font-family: 'Montserrat', 'Noto Serif JP', serif; display: block; min-height: 100vh; margin: 0; overflow-x: hidden; transition: opacity 0.5s ease; }
+        
+        .bg-fixed { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://picsum.photos/id/1011/1920/1080'); background-size: cover; z-index: -1; 
+            filter: blur(5px); transform: scale(1.1);
+        }
+        
+        .menu-container { width: 90%; max-width: 800px; text-align: center; position: relative; z-index: 10; margin: 40px auto 40px; }
+        h1 { font-size: 2.5rem; letter-spacing: 0.3em; color: var(--accent); margin-bottom: 20px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; }
+        .menu-item { 
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.1); 
+            border-top: 1px solid rgba(255,255,255,0.2); border-left: 1px solid rgba(255,255,255,0.2);
+            padding: 40px; border-radius: 20px; text-decoration: none; color: #fff; transition: 0.4s; 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); font-size: 1.1rem;
+        }
+        .menu-item:hover { border-color: var(--accent); transform: translateY(-10px); background: rgba(230, 194, 94, 0.15); box-shadow: 0 15px 40px rgba(0,0,0,0.5); }
+        .menu-item i { display: block; font-size: 2rem; margin-bottom: 15px; color: var(--accent); }
+        .logout-link { margin-top: 50px; display: inline-block; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 1rem; letter-spacing: 0.1em; }
+
+        /* Timeline Styles from Gate */
+        section { 
+            max-width: 1000px; margin: 0 auto; padding: 0 20px;
+        }
+        h2 { font-size: 2.2rem; margin-bottom: 50px; border-left: 4px solid var(--accent); padding-left: 25px; font-family: 'Noto Serif JP'; letter-spacing: 0.1em; color: #fff; text-align: left; }
+
+        .reveal { opacity: 0; transform: translateY(50px); transition: opacity 0.8s ease-out, transform 0.6s ease-out; visibility: hidden; }
+        .reveal.active { opacity: 1; transform: translateY(0); visibility: visible; }
+
+        .timeline-container { position: relative; padding-left: 100px; margin-top: 0; text-align: left; }
+        .timeline-line { position: absolute; left: 45px; top: 20px; bottom: 20px; width: 1px; background: rgba(212, 175, 55, 0.3); border-left: 1px dashed rgba(212, 175, 55, 0.6); }
+        
+        .timeline-item { position: relative; margin-bottom: 20px; }
+        .timeline-circle { 
+            position: absolute; left: -100px; top: 0; width: 92px; height: 92px; 
+            background: linear-gradient(135deg, var(--accent), #a68a2d);
+            border-radius: 50%; color: #000; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 0.9rem; text-align: center; font-weight: 700; line-height: 1.2;
+            z-index: 2; box-shadow: 0 10px 25px rgba(230, 194, 94, 0.4); border: 2px solid rgba(255,255,255,0.2);
+        }
+        .timeline-card { 
+            background: rgba(255, 255, 255, 0.05); 
+            color: #fff; border-radius: 25px; padding: 25px; 
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            position: relative; transition: 0.4s; display: flex; justify-content: space-between; align-items: center; text-decoration: none;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        .timeline-card:hover { transform: translateY(-5px); box-shadow: 0 25px 50px rgba(0,0,0,0.4); border-color: var(--accent); }
+        
+        .card-text { flex: 1; }
+        .card-text h3 { color: var(--accent); font-size: 1.3rem; margin-bottom: 8px; display: flex; align-items: center; gap: 15px; font-family: 'Noto Sans JP', sans-serif; font-weight: 700; }
+        .card-text h3 span { font-size: 1.8rem; opacity: 0.4; font-family: 'Montserrat'; font-weight: 300; }
+        .card-text p { font-family: 'Noto Sans JP', sans-serif; font-weight: 400; opacity: 0.9; }
+        .card-icon { width: 80px; height: 80px; opacity: 0.9; }
+
+        @media (max-width: 768px) {
+            .timeline-container { padding-left: 0; margin-top: 20px; }
+            .timeline-line { display: none; }
+            .timeline-circle { position: relative; left: 0; width: 100%; height: auto; border-radius: 15px; padding: 15px; margin-bottom: 15px; flex-direction: row; gap: 15px; justify-content: flex-start; text-align: left; }
+            .timeline-card { flex-direction: column; padding: 30px; align-items: flex-start; }
+            .card-icon { margin-top: 25px; width: 80px; height: 80px; align-self: center; }
+        }
+
+        .page-loader {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000; z-index: 9999;
+            animation: fadeOutLoader 1.2s ease-out 0.5s forwards;
+        }
+        @keyframes fadeOutLoader {
+            to { opacity: 0; pointer-events: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-loader"></div>
+    <div class="bg-fixed"></div>
+    <div class="menu-container">
+        <p style="letter-spacing: 0.5em; opacity: 0.6; margin-bottom: 10px;">WELCOME, MEMBER {{ session['voter_id'] }}</p>
+        <h1>CONTROL PANEL</h1>
+    </div>
+
+    <section class="reveal">
+            <div class="timeline-container">
+                <div class="timeline-line"></div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-circle">Project<br>Entry</div>
+                    <a href="{{ url_for('un_design.add') }}" class="timeline-card">
+                        <div class="card-text">
+                            <h3><span>01</span> プロジェクトの登録</h3>
+                            <p>あなたが日常で発見した「価値ある不便」を言語化し、新たな企画として提示します。</p>
+                        </div>
+                        <img src="https://img.icons8.com/fluency/144/create-new.png" class="card-icon" alt="Step1">
+                    </a>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-circle">View &<br>Vote</div>
+                    <a href="{{ url_for('un_design.index') }}" class="timeline-card">
+                        <div class="card-text">
+                            <h3><span>02</span> プロジェクト一覧・投票</h3>
+                            <p>他のメンバーが提唱する「手間」のギャラリーを巡り、共鳴する企画にポイントを配分します。</p>
+                        </div>
+                        <img src="https://img.icons8.com/fluency/144/view-module.png" class="card-icon" alt="Step2">
+                    </a>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-circle">Final<br>Stats</div>
+                    <a href="{{ url_for('un_design.result') }}" class="timeline-card">
+                        <div class="card-text">
+                            <h3><span>03</span> 投票結果の確認</h3>
+                            <p>どのプロジェクトが最も「人間らしさ」を取り戻したか、その推移をデータで視覚化します。</p>
+                        </div>
+                        <img src="https://img.icons8.com/fluency/144/combo-chart.png" class="card-icon" alt="Step3">
+                    </a>
+                </div>
+            </div>
+    </section>
+
+    <div style="text-align: center; margin-top: 30px; margin-bottom: 40px;">
+        <a href="{{ url_for('un_design.gate') }}" class="logout-link">LOGOUT / EXIT</a>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', e => {
+                    const href = link.getAttribute('href');
+                    if (href && !href.startsWith('#') && !href.startsWith('javascript') && link.target !== '_blank') {
+                        e.preventDefault();
+                        document.body.style.opacity = '0';
+                        setTimeout(() => window.location.href = href, 800);
+                    }
+                });
+            });
+
+            function reveal() {
+                const reveals = document.querySelectorAll(".reveal");
+                const windowHeight = window.innerHeight;
+                reveals.forEach(element => {
+                    const elementTop = element.getBoundingClientRect().top;
+                    if (elementTop < windowHeight - 150) { element.classList.add("active"); }
+                });
+            }
+            window.addEventListener("scroll", reveal);
+            reveal(); // 初期表示用
+        });
+    </script>
+</body>
+</html>

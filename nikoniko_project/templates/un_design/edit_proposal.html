@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+    <title>UN-DESIGN | Edit Proposal</title>
+    <style>
+        body { background: #050505; color: #fff; font-family: 'Montserrat', 'Noto Serif JP', serif; padding: 50px; min-height: 100vh; transition: opacity 0.5s ease; }
+        
+        @keyframes bgFadeIn { from { opacity: 0; transform: scale(1.05); } to { opacity: 1; transform: scale(1); } }
+        .bg-fixed { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://picsum.photos/id/1011/1920/1080'); background-size: cover; z-index: -1; 
+            opacity: 0; animation: bgFadeIn 1.5s ease-out forwards;
+        }
+        
+        .edit-container { 
+            max-width: 700px; margin: 0 auto; background: rgba(255,255,255,0.03); padding: 40px; 
+            border: 1px solid rgba(230, 194, 94, 0.3); border-radius: 20px; 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        h1 { color: #e6c25e; letter-spacing: 0.3em; text-align: center; font-size: 3rem; margin-bottom: 50px; }
+        .form-group { margin-bottom: 25px; }
+        label { display: block; font-size: 0.9rem; color: #e6c25e; margin-bottom: 8px; letter-spacing: 0.1em; }
+        input, textarea { width: 100%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); color: #fff; padding: 15px; border-radius: 5px; font-family: inherit; transition: 0.3s; font-size: 1.1rem; }
+        input:focus, textarea:focus { outline: none; border-color: #e6c25e; background: rgba(0,0,0,0.8); box-shadow: 0 0 15px rgba(230, 194, 94, 0.2); }
+        select option { color: black; }
+        .submit-btn { width: 100%; background: #e6c25e; color: #000; border: none; padding: 18px; cursor: pointer; font-weight: bold; letter-spacing: 0.2em; margin-top: 20px; transition: 0.3s; font-size: 1rem; }
+        .submit-btn:hover { background: #fff; box-shadow: 0 0 20px #e6c25e; }
+        .back-link { display: block; text-align: center; margin-top: 20px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 1rem; }
+
+        .page-loader {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000; z-index: 9999;
+            animation: fadeOutLoader 1.2s ease-out 0.5s forwards;
+        }
+        @keyframes fadeOutLoader {
+            to { opacity: 0; pointer-events: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-loader"></div>
+    <div class="bg-fixed"></div>
+    <div class="edit-container">
+        <h1>EDIT PROPOSAL</h1>
+        <form method="POST">
+            <div class="form-group">
+                <label>PROJECT TITLE</label>
+                <input type="text" name="title" value="{{ p.title }}" required>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                <div class="form-group">
+                    <label>AUTHOR NAME</label>
+                    <input type="text" name="author" value="{{ p.author }}">
+                </div>
+                <div class="form-group">
+                    <label>TARGET</label>
+                    <input type="text" name="target" value="{{ p.target }}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>BUSINESS CATEGORY</label>
+                <select name="category" style="width: 100%; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 5px; padding: 15px; color: #fff; font-size: 1.1rem; font-family: inherit;">
+                    <option value="農林水産業" {% if p.category == '農林水産業' %}selected{% endif %}>農林水産業</option>
+                    <option value="建設・不動産業" {% if p.category == '建設・不動産業' %}selected{% endif %}>建設・不動産業</option>
+                    <option value="製造業（軽工業）" {% if p.category == '製造業（軽工業）' %}selected{% endif %}>製造業（軽工業）</option>
+                    <option value="製造業（重化学・機械）" {% if p.category == '製造業（重化学・機械）' %}selected{% endif %}>製造業（重化学・機械）</option>
+                    <option value="インフラ・エネルギー" {% if p.category == 'インフラ・エネルギー' %}selected{% endif %}>インフラ・エネルギー</option>
+                    <option value="情報通信業" {% if p.category == '情報通信業' %}selected{% endif %}>情報通信業</option>
+                    <option value="運輸・物流業" {% if p.category == '運輸・物流業' %}selected{% endif %}>運輸・物流業</option>
+                    <option value="卸売・小売業" {% if p.category == '卸売・小売業' %}selected{% endif %}>卸売・小売業</option>
+                    <option value="金融・保険業" {% if p.category == '金融・保険業' %}selected{% endif %}>金融・保険業</option>
+                    <option value="医療・福祉・教育" {% if p.category == '医療・福祉・教育' %}selected{% endif %}>医療・福祉・教育</option>
+                    <option value="宿泊・飲食・レジャー" {% if p.category == '宿泊・飲食・レジャー' %}selected{% endif %}>宿泊・飲食・レジャー</option>
+                    <option value="専門・技術・その他サービス" {% if p.category == '専門・技術・その他サービス' %}selected{% endif %}>専門・技術・その他サービス</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>PROBLEM STATEMENT</label>
+                <textarea name="problem" rows="3">{{ p.problem }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>PROPOSAL DETAILS</label>
+                <textarea name="details" rows="5">{{ p.details }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>INTENDED EFFECT</label>
+                <textarea name="effect" rows="3">{{ p.effect }}</textarea>
+            </div>
+            <div class="form-group">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; justify-content: space-between; gap: 40px;">
+                    <div>
+                        <label>設計・開発</label>
+                        <input type="number" name="cost_pt_1" value="{{ p.cost_pt_1 }}" max="500">
+                    </div>
+                    <div>
+                        <label>運用・維持</label>
+                        <input type="number" name="cost_pt_2" value="{{ p.cost_pt_2 }}" max="500">
+                    </div>
+                    <div>
+                        <label>精神的・肉体的</label>
+                        <input type="number" name="cost_pt_3" value="{{ p.cost_pt_3 }}" max="500">
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="submit-btn">UPDATE ARCHIVE</button>
+        </form>
+        {% if session['is_admin'] %}
+            <a href="{{ url_for('un_design.admin_feedback') }}" class="back-link">CANCEL AND RETURN</a>
+        {% else %}
+            <a href="{{ url_for('un_design.index') }}" class="back-link">CANCEL AND RETURN</a>
+        {% endif %}
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', e => {
+                    const href = link.getAttribute('href');
+                    if (href && !href.startsWith('#') && !href.startsWith('javascript') && link.target !== '_blank') {
+                        e.preventDefault();
+                        document.body.style.opacity = '0';
+                        setTimeout(() => window.location.href = href, 800);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

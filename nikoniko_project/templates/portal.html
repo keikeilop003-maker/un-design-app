@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>NIKONIKO LAND - PORTAL</title>
+    <style>
+        body { background: #000; color: #fff; font-family: 'serif'; text-align: center; padding-top: 100px; }
+        .gate-container { display: flex; justify-content: center; gap: 50px; margin-top: 50px; }
+        .gate-card { border: 1px solid #fff; padding: 40px; width: 250px; cursor: pointer; transition: 0.3s; text-decoration: none; color: #fff; }
+        .gate-card:hover { background: #fff; color: #000; }
+    </style>
+</head>
+<body>
+    <h1>NIKONIKO LAND</h1>
+    <p>ようこそ、知性と手間が交差する遊園地へ</p>
+    <div class="gate-container">
+        <a href="{{ url_for('un_design.gate') }}" class="gate-card">
+            <h2>UN-DESIGN</h2>
+            <p>不便益パビリオン</p>
+        </a>
+        <a href="{{ url_for('memories.index') }}" class="gate-card">
+            <h2>MEMORIES</h2>
+            <p>ヘッセの展示室</p>
+        </a>
+    </div>
+</body>
+</html>

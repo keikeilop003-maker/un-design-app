@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ログイン</title>
+</head>
+<body>
+    <h1>ポイント投票システム</h1>
+    <div style="border: 2px solid #ccc; padding: 20px; width: 300px;">
+        <h3>あなたのIDを入力してください</h3>
+        <form action="/vote_page" method="POST">
+            ID: <input type="number" name="voter_id" required placeholder="1100〜1450">
+            <button type="submit">投票ページへ</button>
+        </form>
+    </div>
+    <p><a href="/add">→ 新しい企画を登録する（生徒用）</a></p>
+</body>
+</html>
