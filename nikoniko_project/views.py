@@ -74,8 +74,10 @@ reports_db = [
 # 投票済み判定ヘルパー
 def has_user_voted(user_id):
     if not user_id: return False
+    uid_str = str(user_id)
     for p in proposals_db:
-        if str(user_id) in p.votes:
+        # キーが存在し、かつポイントが0より大きい場合のみ投票済みとみなす
+        if p.votes.get(uid_str, 0) > 0:
             return True
     return False
 
@@ -219,7 +221,7 @@ def vote_all():
     # ユーザーの持ち点（1000pt）を使い切っているか確認
     if total_vote_points == 1000:
         for p, pt in vote_updates:
-            p.votes[current_user_id] = pt
+            p.votes[str(current_user_id)] = pt # キーを文字列に統一
         session['has_voted'] = True
 
     return redirect(url_for('un_design.result'))
