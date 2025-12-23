@@ -6,6 +6,12 @@ import io
 # Blueprintの定義
 bp = Blueprint('un_design', __name__, url_prefix='/un_design')
 
+def safe_int(val):
+    try:
+        return int(val)
+    except (ValueError, TypeError):
+        return 0
+
 # --- ダミーデータモデル（データベースの代わり） ---
 # ※サーバーを再起動するとリセットされます
 
@@ -18,9 +24,9 @@ class Proposal:
         self.problem = problem
         self.details = details
         self.effect = effect
-        self.cost_pt_1 = int(c1) if c1 else 0
-        self.cost_pt_2 = int(c2) if c2 else 0
-        self.cost_pt_3 = int(c3) if c3 else 0
+        self.cost_pt_1 = max(0, safe_int(c1))
+        self.cost_pt_2 = max(0, safe_int(c2))
+        self.cost_pt_3 = max(0, safe_int(c3))
         self.votes = defaultdict(int) # グループごとの投票ポイント
         self.creator_id = creator_id # 作成者のID
         self.category = category # 事業カテゴリ
@@ -175,6 +181,10 @@ def vote_all():
     if current_user_id in voted_user_ids:
         return redirect(url_for('un_design.result'))
 
+    # 投票内容の一時保存と合計チェック
+    vote_updates = []
+    total_vote_points = 0
+
     for p in proposals_db:
         # 自分の企画には投票できない
         if str(p.creator_id) == str(current_user_id):
@@ -182,9 +192,15 @@ def vote_all():
             
         points = request.form.get(f'points_{p.id}')
         if points and user_group:
-            pt = int(points)
+            pt = safe_int(points)
             if pt > 0:
-                p.votes[user_group] += pt
+                vote_updates.append((p, pt))
+                total_vote_points += pt
+    
+    # 合計が1000を超えていないか確認（不正リクエスト対策）
+    if total_vote_points <= 1000:
+        for p, pt in vote_updates:
+            p.votes[user_group] += pt
     
     voted_user_ids.add(current_user_id)
     session['has_voted'] = True
@@ -278,9 +294,9 @@ def edit_proposal(id):
         target_p.problem = request.form.get('problem')
         target_p.details = request.form.get('details')
         target_p.effect = request.form.get('effect')
-        target_p.cost_pt_1 = int(request.form.get('cost_pt_1', 0))
-        target_p.cost_pt_2 = int(request.form.get('cost_pt_2', 0))
-        target_p.cost_pt_3 = int(request.form.get('cost_pt_3', 0))
+        target_p.cost_pt_1 = max(0, safe_int(request.form.get('cost_pt_1')))
+        target_p.cost_pt_2 = max(0, safe_int(request.form.get('cost_pt_2')))
+        target_p.cost_pt_3 = max(0, safe_int(request.form.get('cost_pt_3')))
         
         if is_admin:
             return redirect(url_for('un_design.admin_feedback'))
