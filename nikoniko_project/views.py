@@ -217,12 +217,18 @@ def admin_feedback():
         if p.category:
             posts_by_category[p.category] += 1
 
+    # グループごとの投票数
+    votes_by_group = defaultdict(int)
+    for p in proposals_db:
+        for group, points in p.votes.items():
+            votes_by_group[group] += points
+
     # 目標達成状況
     achieved_count = sum(1 for p in proposals_db if p.total_points >= 1000)
     not_achieved_count = len(proposals_db) - achieved_count
     achievement_status = {'achieved': achieved_count, 'not_achieved': not_achieved_count}
 
-    return render_template('un_design/feedback_admin.html', reports=reports_db, proposals=proposals_db, posts_by_group=posts_by_group, posts_by_category=posts_by_category, achievement_status=achievement_status)
+    return render_template('un_design/feedback_admin.html', reports=reports_db, proposals=proposals_db, posts_by_group=posts_by_group, posts_by_category=posts_by_category, votes_by_group=votes_by_group, achievement_status=achievement_status)
 
 @bp.route('/debug_report', methods=['POST'])
 def debug_report():
