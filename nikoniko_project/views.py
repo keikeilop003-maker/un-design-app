@@ -178,7 +178,9 @@ def index():
         return redirect(url_for('un_design.gate'))
     
     current_user_id = session.get('voter_id')
-    has_voted = session.get('has_voted', False) or has_user_voted(current_user_id)
+    # セッションの記録ではなく、実データ（DB）の状態を正とする
+    has_voted = has_user_voted(current_user_id)
+    session['has_voted'] = has_voted # セッション状態を実態に合わせて同期
     
     # 自分のグループが作成した企画のみフィルタリング
     user_group = session.get('group')
