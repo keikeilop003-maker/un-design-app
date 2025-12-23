@@ -59,16 +59,16 @@
         <div class="project-card">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2>{{ p.title }}</h2>
-                {% if p.total_points >= 1000 %}
+                {% if p.total_points >= p.target_cost %}
                     <span class="status-badge achieved">GOAL ACHIEVED</span>
                 {% else %}
                     <span class="status-badge" style="border: 1px solid #666;">IN PROGRESS</span>
                 {% endif %}
             </div>
             
-            <p style="font-size: 1.2rem;">Current: {{ p.total_points }} / 1000 pts</p>
+            <p style="font-size: 1.2rem;">Current: {{ p.total_points }} / {{ p.target_cost }} pts</p>
             <div class="progress-container">
-                <div class="progress-bar" style="width: {{ (p.total_points / 1000 * 100) if p.total_points < 1000 else 100 }}%;"></div>
+                <div class="progress-bar" style="width: {{ (p.total_points / p.target_cost * 100) if p.total_points < p.target_cost else 100 }}%;"></div>
             </div>
         </div>
         {% endfor %}

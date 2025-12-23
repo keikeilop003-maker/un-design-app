@@ -46,6 +46,7 @@ class Proposal:
 
     @property
     def target_cost(self):
+        # 達成条件：3つのコストの合計値
         return self.cost_pt_1 + self.cost_pt_2 + self.cost_pt_3
 
     @property
@@ -210,7 +211,7 @@ def vote_all():
                 vote_updates.append((p, pt))
                 total_vote_points += pt
     
-    # 合計がちょうど1000ポイントであることを確認（持ち点は使い切り）
+    # ユーザーの持ち点（1000pt）を使い切っているか確認
     if total_vote_points == 1000:
         for p, pt in vote_updates:
             p.votes[current_user_id] = pt
