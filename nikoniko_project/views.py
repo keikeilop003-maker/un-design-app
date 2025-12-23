@@ -73,6 +73,7 @@ reports_db = [
 
 # 投票済み判定ヘルパー
 def has_user_voted(user_id):
+    if not user_id: return False
     for p in proposals_db:
         if str(user_id) in p.votes:
             return True
@@ -161,6 +162,7 @@ def add():
         c3 = request.form.get('cost_pt_3')
 
         new_proposal = Proposal(new_id, title, author, target, problem, details, effect, c1, c2, c3, creator_id, category)
+        new_proposal.votes = {} # 明示的に初期化
         proposals_db.append(new_proposal)
         
         return redirect(url_for('un_design.index'))
@@ -190,6 +192,9 @@ def vote_all():
     """一括投票処理"""
     user_group = session.get('group')
     current_user_id = session.get('voter_id')
+    
+    if not current_user_id:
+        return redirect(url_for('un_design.gate'))
     
     # 重複投票防止
     if has_user_voted(current_user_id):
