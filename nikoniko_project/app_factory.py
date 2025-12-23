@@ -7,7 +7,15 @@ def create_app():
     app = Flask(__name__)
     
     app.config['SECRET_KEY'] = 'un-design-secret'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pavilion.db'
+    
+    # 修正ポイント：環境変数 DATABASE_URL があれば使い、なければローカルの SQLite を使う
+    # Render環境では自動的に PostgreSQL に繋がります
+    db_url = os.environ.get('DATABASE_URL')
+    if db_url and db_url.startswith("postgres://"):
+        # SQLAlchemyの仕様変更対応（postgres:// を postgresql:// に変換）
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url or 'sqlite:///pavilion.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
